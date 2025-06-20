@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from octofit_tracker.models import User, Team, Activity, Leaderboard, Workout
+from octofit_tracker.test_data import test_users, test_teams, test_activities, test_leaderboard, test_workouts
 from django.utils import timezone
 
 class Command(BaseCommand):
@@ -14,27 +15,26 @@ class Command(BaseCommand):
         Workout.objects.all().delete()
 
         # Users
-        user1 = User.objects.create(email='alice@example.com', name='Alice', password='password1')
-        user2 = User.objects.create(email='bob@example.com', name='Bob', password='password2')
-        user3 = User.objects.create(email='carol@example.com', name='Carol', password='password3')
+        user_objs = {}
+        for u in test_users:
+            user = User.objects.create(**u)
+            user_objs[u["email"]] = user
 
         # Teams
-        team1 = Team.objects.create(name='Team Alpha')
-        team2 = Team.objects.create(name='Team Beta')
+        for t in test_teams:
+            Team.objects.create(**t)
 
         # Activities
-        Activity.objects.create(user=user1, activity_type='Running', duration=30, date=timezone.now())
-        Activity.objects.create(user=user2, activity_type='Cycling', duration=45, date=timezone.now())
-        Activity.objects.create(user=user3, activity_type='Swimming', duration=60, date=timezone.now())
+        for a in test_activities:
+            Activity.objects.create(user=user_objs[a["user_email"]], activity_type=a["activity_type"], duration=a["duration"], date=a["date"])
 
         # Leaderboard
-        Leaderboard.objects.create(user=user1, score=100)
-        Leaderboard.objects.create(user=user2, score=80)
-        Leaderboard.objects.create(user=user3, score=120)
+        for l in test_leaderboard:
+            Leaderboard.objects.create(user=user_objs[l["user_email"]], score=l["score"])
 
         # Workouts
-        Workout.objects.create(name='Pushups', description='Do 20 pushups')
-        Workout.objects.create(name='Situps', description='Do 30 situps')
-        Workout.objects.create(name='Jumping Jacks', description='Do 50 jumping jacks')
+        for w in test_workouts:
+            Workout.objects.create(**w)
 
         self.stdout.write(self.style.SUCCESS('Test data populated successfully.'))
+        self.stdout.write(self.style.SUCCESS(f'Users: {User.objects.count()} | Teams: {Team.objects.count()} | Activities: {Activity.objects.count()} | Leaderboard: {Leaderboard.objects.count()} | Workouts: {Workout.objects.count()}'))
